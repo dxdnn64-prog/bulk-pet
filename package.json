@@ -1,0 +1,31 @@
+{
+  "name": "bulk-pet",
+  "productName": "Bulk",
+  "version": "0.1.0",
+  "description": "Бульк — желейный питомец, который живёт на рабочем столе Windows",
+  "main": "src/main.js",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "local.bulk.pet",
+    "productName": "Bulk",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.0.0",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "koffi": "^3.3.4"
+  }
+}
