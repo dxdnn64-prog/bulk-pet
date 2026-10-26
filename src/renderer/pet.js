@@ -327,6 +327,9 @@ export class Pet {
       return
     }
 
+    // стоит рядом с карточкой-мотиватором и ждёт
+    if (this.act === "coach") return
+
     // идём к печеньке, если она лежит
     if (this.cookie && this.cookie.surface && this.act !== "eat") {
       const c = this.cookie

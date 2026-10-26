@@ -2,6 +2,9 @@ const { contextBridge, ipcRenderer } = require("electron")
 
 contextBridge.exposeInMainWorld("bulkApi", {
   getDisplay: () => ipcRenderer.invoke("get-display"),
+  getSettings: () => ipcRenderer.invoke("get-settings"),
+  onIdle: (cb) => ipcRenderer.on("idle", (_, seconds) => cb(seconds)),
+  openUrl: (url) => ipcRenderer.send("open-url", url),
   onDisplay: (cb) => ipcRenderer.on("display", (_, d) => cb(d)),
   onWindows: (cb) => ipcRenderer.on("windows", (_, list) => cb(list)),
   onCommand: (cb) => ipcRenderer.on("command", (_, c) => cb(c)),

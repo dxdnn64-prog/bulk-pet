@@ -1,10 +1,23 @@
 // Главный процесс: прозрачное окно на весь экран, трей, меню, список окон для Булька
 
-const { app, BrowserWindow, screen, ipcMain, Tray, Menu, nativeImage } = require("electron")
+const { app, BrowserWindow, screen, ipcMain, Tray, Menu, nativeImage, powerMonitor, shell } = require("electron")
 const path = require("path")
 const { createWindowTracker } = require("./windows")
 
 const WINDOWS_POLL_MS = 150
+const IDLE_POLL_MS = 5000
+// через сколько секунд без мыши и клавиатуры Бульк начинает мотивировать
+const IDLE_SECONDS = Number(process.env.BULK_IDLE_SECONDS) || 5 * 60
+
+// ссылки, которые Бульк может открыть в браузере
+const ALLOWED_URLS = [
+  "https://claude.ai/",
+  "https://go.dev/",
+  "https://gobyexample.com/",
+  "https://roadmap.sh/",
+  "https://github.com/donnemartin/system-design-primer",
+  "https://leetcode.com/",
+]
 
 let overlay = null
 let tray = null
@@ -58,6 +71,10 @@ function createOverlay() {
 
   if (!app.isPackaged) {
     overlay.webContents.on("console-message", (e) => console.log(`[renderer] ${e.message}`))
+    // для отладки: BULK_DEMO=motivate|question сразу показывает карточку
+    if (process.env.BULK_DEMO) {
+      overlay.webContents.once("did-finish-load", () => setTimeout(() => command(process.env.BULK_DEMO), 2500))
+    }
   }
 
   ownHwnd = overlay.getNativeWindowHandle().readBigUInt64LE(0)
@@ -126,6 +143,8 @@ function buildMenu() {
   return Menu.buildFromTemplate([
     { label: "Покормить 🍪", click: () => command("feed") },
     { label: "Позвать к курсору", click: () => command("call", cursorInOverlay()) },
+    { label: "Чем бы заняться?", click: () => command("motivate") },
+    { label: "Вопрос к собеседованию", click: () => command("question") },
     sleeping
       ? { label: "Разбудить", click: () => command("wake") }
       : { label: "Уложить спать", click: () => command("sleep") },
@@ -144,6 +163,12 @@ function buildMenu() {
 // ---------- IPC ----------
 
 ipcMain.handle("get-display", () => displayInfo())
+
+ipcMain.handle("get-settings", () => ({ idleSeconds: IDLE_SECONDS }))
+
+ipcMain.on("open-url", (_, url) => {
+  if (typeof url === "string" && ALLOWED_URLS.some((p) => url.startsWith(p))) shell.openExternal(url)
+})
 
 ipcMain.on("set-interactive", (_, interactive) => {
   if (!overlay) return
@@ -178,6 +203,9 @@ app.whenReady().then(() => {
   tracker = createWindowTracker()
   createOverlay()
   setInterval(sendWindows, WINDOWS_POLL_MS)
+  setInterval(() => {
+    if (overlay && !overlay.isDestroyed()) overlay.webContents.send("idle", powerMonitor.getSystemIdleTime())
+  }, IDLE_POLL_MS)
   screen.on("display-metrics-changed", onDisplayChanged)
   screen.on("display-added", onDisplayChanged)
   screen.on("display-removed", onDisplayChanged)

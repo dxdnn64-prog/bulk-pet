@@ -1,6 +1,7 @@
 // Renderer: цикл анимации, мышь, окна Windows как платформы
 
 import { Pet, S } from "./pet.js"
+import { Coach } from "./coach.js"
 import { drawBulk, drawBubble, drawCookie, drawZ, drawCrumb } from "./bulk-draw.js"
 
 const api = window.bulkApi
@@ -74,12 +75,25 @@ api.onDisplay(applyDisplay)
 const pet = new Pet(world, window.localStorage)
 pet.onSleepChange = (v) => api.setSleeping(v)
 
+let coach = null
+
 api.onCommand((c) => {
   if (c.type === "feed") pet.feed()
   if (c.type === "call") pet.callTo(c.x, c.y)
   if (c.type === "sleep") pet.goSleep()
   if (c.type === "wake") pet.wake()
+  if (c.type === "motivate" && coach) coach.motivate()
+  if (c.type === "question" && coach) coach.nextQuestion()
 })
+
+api.onIdle((seconds) => {
+  if (coach) coach.onIdle(seconds)
+})
+
+// курсор над Бульком или над его карточкой — окно принимает клики
+function hitAny(x, y) {
+  return pet.hitTest(x, y) || (coach !== null && coach.hitTest(x, y))
+}
 
 // ---------- мышь ----------
 // Окно прозрачно для кликов, пока курсор не над Бульком.
@@ -109,7 +123,7 @@ window.addEventListener("mousemove", (e) => {
     pet.dragTo(e.clientX, e.clientY, dt)
     return
   }
-  setInteractive(pet.hitTest(e.clientX, e.clientY))
+  setInteractive(hitAny(e.clientX, e.clientY))
 })
 
 window.addEventListener("mousedown", (e) => {
@@ -123,10 +137,13 @@ window.addEventListener("mouseup", (e) => {
   else if (pressed) pet.click()
   pressed = null
   dragging = false
-  setInteractive(pet.hitTest(e.clientX, e.clientY))
+  // после клика по кнопке карточка могла закрыться — пересчитываем
+  requestAnimationFrame(() => setInteractive(hitAny(e.clientX, e.clientY)))
 })
 
-window.addEventListener("dblclick", () => pet.hop())
+window.addEventListener("dblclick", (e) => {
+  if (pet.hitTest(e.clientX, e.clientY)) pet.hop()
+})
 
 window.addEventListener("contextmenu", (e) => {
   e.preventDefault()
@@ -175,12 +192,15 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000)
   last = now
   pet.update(dt)
+  coach.update()
   render()
   requestAnimationFrame(frame)
 }
 
 async function start() {
   applyDisplay(await api.getDisplay())
+  const settings = await api.getSettings()
+  coach = new Coach(pet, world, api, settings.idleSeconds)
   window.addEventListener("resize", resize)
   makeTrayIcon()
   pet.speak("привет! я Бульк 💚", 3)

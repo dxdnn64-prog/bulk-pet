@@ -14,10 +14,44 @@
       user-select: none;
     }
     canvas { display: block; }
+
+    #card {
+      position: fixed;
+      width: 300px;
+      box-sizing: border-box;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.97);
+      border: 2px solid #2E7D66;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      font: 14px/1.4 "Segoe UI", sans-serif;
+      color: #1B1B2F;
+    }
+    #card[hidden] { display: none; }
+    #card p { margin: 0 0 10px; }
+    #card .label { font-size: 12px; color: #2E7D66; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    #card .title { font-size: 15px; font-weight: 600; }
+    #card .hint { font-size: 12px; color: #6b6b80; }
+    #card .answer { background: #EAF9F3; border-radius: 10px; padding: 8px 10px; }
+    #card .buttons { display: flex; flex-direction: column; gap: 6px; }
+    #card button {
+      font: 600 13px "Segoe UI", sans-serif;
+      text-align: left;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      background: #8EE3C8;
+      color: #1B1B2F;
+      cursor: pointer;
+    }
+    #card button:hover { background: #6fd6b4; }
+    #card button.ghost { background: transparent; color: #4b4b60; }
+    #card button.ghost:hover { background: #f0f0f5; }
   </style>
 </head>
 <body>
   <canvas id="stage"></canvas>
+  <div id="card" hidden></div>
   <script type="module" src="app.js"></script>
 </body>
 </html>
