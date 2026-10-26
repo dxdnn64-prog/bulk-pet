@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+  <script type="module">
+    import { drawBulk } from "../src/renderer/bulk-draw.js"
+
+    const SIZE = 512
+    const scale = 8
+    const c = document.createElement("canvas")
+    c.width = SIZE
+    c.height = SIZE
+    const ctx = c.getContext("2d")
+    drawBulk(
+      ctx,
+      { x: SIZE / 2, y: SIZE - 30, angle: 0, scale },
+      { face: "happy", look: [0.3, 0], sx: 1, sy: 1, lift: 0, liftL: 0, liftR: 0, leaf: 0, blink: false, time: 0, shadow: false }
+    )
+    window.iconData = c.toDataURL("image/png")
+  </script>
+</body>
+</html>

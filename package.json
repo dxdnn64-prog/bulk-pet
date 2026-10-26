@@ -8,7 +8,9 @@
   "type": "commonjs",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win portable"
+    "icon": "electron scripts/make-icon.js",
+    "dist": "electron-builder --win dir",
+    "dist:portable": "electron-builder --win portable"
   },
   "build": {
     "appId": "local.bulk.pet",
@@ -17,8 +19,11 @@
       "src/**/*",
       "package.json"
     ],
+    "asarUnpack": [
+      "node_modules/koffi/**"
+    ],
     "win": {
-      "target": "portable"
+      "icon": "build/icon.png"
     }
   },
   "devDependencies": {
